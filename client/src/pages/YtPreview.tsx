@@ -1,8 +1,25 @@
+import { useSearchParams } from 'react-router-dom'
+import {yt_html} from '../assets/assets'
+
 
 
 const YtPreview = () => {
+
+  const [SearchParams] = useSearchParams()
+
+  const thumbnail_url = SearchParams.get('thumbnail_url')
+  const title = SearchParams.get('title')
+
+
+  const new_html = yt_html.replace("%%THUMBNAIL_URL%%", thumbnail_url!).replace("%%TITLE%%",title!);
+
+
+
   return (
-    <div>YtPreview</div>
+    <div className='fixed inset-0 z-100 bg-black'>
+      <iframe srcDoc={new_html} width="100%" height="100%" allowFullScreen></iframe>
+
+    </div>
   )
 }
 
