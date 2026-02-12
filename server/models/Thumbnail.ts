@@ -1,26 +1,26 @@
 import mongoose, { Document, Schema } from "mongoose";
 
 export interface IThumbnail extends Document {
-  userId: string;
+  userId: mongoose.Types.ObjectId;
   title: string;
   description?: string;
   style:
-    | "Bold & Graphic"
-    | "Tech/Futuristic"
-    | "Minimalist"
-    | "Photorealistic"
-    | "Illustrated";
+  | "Bold & Graphic"
+  | "Tech/Futuristic"
+  | "Minimalist"
+  | "Photorealistic"
+  | "Illustrated";
   aspect_ratio?: "16:9" | "1:1" | "9:16";
   color_scheme?:
-    | "vibrant"
-    | "sunset"
-    | "forest"
-    | "neon"
-    | "purple"
-    | "monochrome"
-    | "ocean"
-    | "pastel";
-  text_overlay?: boolean;
+  | "vibrant"
+  | "sunset"
+  | "forest"
+  | "neon"
+  | "purple"
+  | "monochrome"
+  | "ocean"
+  | "pastel";
+  text_overlay?: string;
   image_url?: string;
   prompt_used?: string;
   user_prompt?: string;
@@ -32,7 +32,7 @@ export interface IThumbnail extends Document {
 const ThumbnailSchema = new Schema<IThumbnail>(
   {
     userId: {
-      type: String,
+      type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
@@ -80,8 +80,8 @@ const ThumbnailSchema = new Schema<IThumbnail>(
     },
 
     text_overlay: {
-      type: Boolean,
-      default: false,
+      type: String,
+      default: "",
     },
 
     image_url: {

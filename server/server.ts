@@ -7,6 +7,7 @@ import "dotenv/config";
 import connectDB from "./configs/db.js";
 import AuthRouter from "./routes/AuthRoutes.js";
 import ThumbnailRouter from "./routes/ThumbnailRoutes.js";
+import UserRouter from "./routes/userRoutes.js";
 
 // Session typing
 declare module "express-session" {
@@ -53,6 +54,7 @@ app.get("/", (req: Request, res: Response) => {
 // ✅ FIXED LINE
 app.use("/api/auth", AuthRouter);
 app.use("/api/thumbnail", ThumbnailRouter);
+app.use("/api/user", UserRouter);
 
 const port = process.env.PORT || 3000;
 

@@ -30,7 +30,7 @@ export const registerUser = async (req: Request, res: Response) => {
 
     // setting user data in session
     req.session.isLoggedIn = true
-    req.session.userId = newUser._id
+    req.session.userId = newUser._id.toString()
 
     return res.json({
       message: 'Account created successfully',
@@ -67,7 +67,7 @@ export const loginUser = async (req: Request, res: Response) => {
 
     // setting user data in session
     req.session.isLoggedIn = true
-    req.session.userId = user._id
+    req.session.userId = user._id.toString()
 
     return res.json({
       message: 'Login successful',
@@ -93,7 +93,7 @@ export const logoutUser = async (req: Request, res: Response) => {
         return res.status(500).json({ message: 'Logout failed' })
       }
 
-      res.clearCookie('connect.sid') // default session cookie name
+      res.clearCookie('thumblify.sid') // matching name in server.ts
 
       return res.json({ message: 'Logout successful' })
     })
@@ -103,22 +103,22 @@ export const logoutUser = async (req: Request, res: Response) => {
   }
 }
 
-export const verifyUser = async (req: Request, res:Response)=> {
-    
-    try {
-        const {userId} = req.session;
+export const verifyUser = async (req: Request, res: Response) => {
 
-        const user = await User.findById(userId).select('-password')
+  try {
+    const { userId } = req.session;
+
+    const user = await User.findById(userId).select('-password')
 
 
-        if(!user){
-            return res.status(400).json({message: 'Invalid User'})
-        }
-        
-        return res.json({user});
-        
-    } catch (error: any) {
-        console.log(error)
-        res.status(500).json({ message: error.message })
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid User' })
     }
+
+    return res.json({ user });
+
+  } catch (error: any) {
+    console.log(error)
+    res.status(500).json({ message: error.message })
+  }
 }

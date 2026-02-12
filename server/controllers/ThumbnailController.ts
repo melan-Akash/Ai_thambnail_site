@@ -1,15 +1,21 @@
 import { Request, Response } from "express";
 import Thumbnail from "../models/Thumbnail.js";
-import { GenerateContentConfig } from "@google/genai";
 import fs from "fs";
 import path from "path";
 import { v2 as cloudinary } from "cloudinary";
-import ai from "../configs/ai.js";
+import openai from "../configs/openai.js";
+
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 // --------------------
 // PROMPTS
 // --------------------
-const stylePrompts = {
+const stylePrompts: Record<string, string> = {
   "Bold & Graphic":
     "eye-catching thumbnail, bold typography, vibrant colors, expressive facial reaction, dramatic lighting, high contrast, click-worthy composition, professional style",
 
@@ -26,7 +32,7 @@ const stylePrompts = {
     "illustrated thumbnail, custom digital illustration, stylized characters, bold outlines, vibrant colors, creative cartoon or vector art style",
 };
 
-const colorSchemeDescriptions = {
+const colorSchemeDescriptions: Record<string, string> = {
   vibrant:
     "vibrant and energetic colors, high saturation, bold contrasts, eye-catching palette",
   sunset:
@@ -72,55 +78,42 @@ export const generateThumbnail = async (req: Request, res: Response) => {
       isGenerating: true,
     });
 
-    const model = "gemini-3-pro-image-preview";
-
-    const generationConfig: GenerateContentConfig = {
-      maxOutputTokens: 32768,
-      temperature: 1,
-      topP: 0.95,
-      responseModalities: ["IMAGE"],
-      imageConfig: {
-        aspectRatio: aspect_ratio || "16:9",
-        imageSize: "1K",
-      },
-    };
-
-    let prompt = `Create a ${stylePrompts[style]} for: "${title}". `;
+    let prompt = `Create a ${stylePrompts[style] || "professional thumbnail"} for: "${title}". `;
 
     if (color_scheme) {
-      prompt += `Use a ${colorSchemeDescriptions[color_scheme]} color scheme. `;
+      prompt += `Use a ${colorSchemeDescriptions[color_scheme] || color_scheme} color scheme. `;
     }
 
     if (user_prompt) {
       prompt += `Additional details: ${user_prompt}. `;
     }
 
-    prompt += `The thumbnail should be ${aspect_ratio}, visually stunning, bold, professional, and impossible to ignore.`;
+    if (text_overlay) {
+      prompt += `Include the text "${text_overlay}" clearly visible in the thumbnail. `;
+    }
 
-    const response: any = await ai.models.generateContent({
-      model,
-      contents: [prompt],
-      config: generationConfig,
+    prompt += `The thumbnail should be ${aspect_ratio || "16:9"}, visually stunning, bold, professional, and impossible to ignore.`;
+
+    // OpenAI DALL-E 3 Call
+    const response = await openai.images.generate({
+      model: "dall-e-3",
+      prompt: prompt,
+      n: 1,
+      size: "1024x1024",
+      response_format: "b64_json",
     });
 
-    if (!response?.candidates?.[0]?.content?.parts) {
-      throw new Error("Unexpected response");
+    if (!response.data?.[0]?.b64_json) {
+      throw new Error("Failed to generate image from OpenAI");
     }
 
-    const parts = response.candidates[0].content.parts;
-    let finalBuffer: Buffer | null = null;
-
-    for (const part of parts) {
-      if (part.inlineData) {
-        finalBuffer = Buffer.from(part.inlineData.data, "base64");
-      }
-    }
+    const finalBuffer = Buffer.from(response.data[0].b64_json, "base64");
 
     const filename = `final-output-${Date.now()}.png`;
     const filepath = path.join("images", filename);
 
     fs.mkdirSync("images", { recursive: true });
-    fs.writeFileSync(filepath, finalBuffer!);
+    fs.writeFileSync(filepath, finalBuffer);
 
     const uploadResult = await cloudinary.uploader.upload(filepath, {
       resource_type: "image",
@@ -134,7 +127,7 @@ export const generateThumbnail = async (req: Request, res: Response) => {
 
     res.json({ message: "Thumbnail Generated", thumbnail });
   } catch (error: any) {
-    console.log(error);
+    console.error("OpenAI Generation Error:", error);
     res.status(500).json({ message: error.message });
   }
 };
