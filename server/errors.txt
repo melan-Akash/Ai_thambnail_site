@@ -1,1 +1,0 @@
-﻿test-openai.ts(29,35): error TS18048: 'image.data' is possibly 'undefined'.

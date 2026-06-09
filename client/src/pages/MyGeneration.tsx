@@ -4,6 +4,7 @@ import type { IThumbnail } from "../assets/assets";
 import { dummyThumbnails } from "../assets/assets";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowRightIcon, DownloadIcon, TrashIcon } from "lucide-react";
+import toast from "react-hot-toast";
 
 const MyGeneration = () => {
   const navigate = useNavigate();
@@ -14,13 +15,19 @@ const MyGeneration = () => {
     "9:16": "aspect-[9/16]",
   };
 
-  const [thumbnails, setThumbnails] = useState<IThumbnail[]>([]);
+  const [thumbnails, setThumbnails] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
   const fetchThumbnails = async () => {
     try {
       setLoading(true);
-      setThumbnails(dummyThumbnails);
+      const res = await fetch("http://localhost:3000/api/thumbnail/my-thumbnails", {
+        credentials: "include"
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setThumbnails(data.thumbnails);
+      }
     } catch (error) {
       console.error("Failed to fetch thumbnails", error);
     } finally {
@@ -28,13 +35,45 @@ const MyGeneration = () => {
     }
   };
 
-  const handleDownload = (imageUrl?: string) => {
+  const handleDownload = async (imageUrl?: string) => {
     if (!imageUrl) return;
-    window.open(imageUrl, "_blank");
+    try {
+      const toastId = toast.loading("Downloading...");
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "ai-thumbnail.jpg";
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+      toast.dismiss(toastId);
+      toast.success("Downloaded successfully!");
+    } catch (e) {
+      window.open(imageUrl, "_blank");
+    }
   };
 
-  const handleDelete = (id: string) => {
-    setThumbnails((prev) => prev.filter((t) => t._id !== id));
+  const handleDelete = async (id: string) => {
+    try {
+      const toastId = toast.loading("Deleting...");
+      const res = await fetch(`http://localhost:3000/api/thumbnail/${id}`, {
+        method: "DELETE",
+        credentials: "include"
+      });
+      toast.dismiss(toastId);
+      if (res.ok) {
+        setThumbnails((prev) => prev.filter((t) => t._id !== id));
+        toast.success("Thumbnail deleted");
+      } else {
+        toast.error("Failed to delete thumbnail");
+      }
+    } catch (error) {
+      console.error("Failed to delete thumbnail", error);
+      toast.error("Something went wrong");
+    }
   };
 
   useEffect(() => {
@@ -128,7 +167,7 @@ const MyGeneration = () => {
                         {thumb.style}
                       </span>
                       <span className="px-2 py-0.5 rounded bg-white/8">
-                        {thumb.colorSchemes}
+                        {thumb.color_scheme}
                       </span>
                       <span className="px-2 py-0.5 rounded bg-white/8">
                         {thumb.aspect_ratio}

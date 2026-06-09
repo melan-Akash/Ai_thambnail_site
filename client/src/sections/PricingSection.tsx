@@ -4,8 +4,37 @@ import { pricingData } from "../data/pricing";
 import type { IPricing } from "../types";
 import { CheckIcon } from "lucide-react";
 import { motion } from "motion/react";
+import { useState } from "react";
+import toast from "react-hot-toast";
 
 export default function PricingSection() {
+    const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+
+    const handleCheckout = async (planId: string) => {
+        try {
+            setLoadingPlan(planId);
+            const res = await fetch("http://localhost:3000/api/stripe/create-checkout-session", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify({ planId: planId.toLowerCase() }),
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                toast.error(data.message || "Checkout failed");
+                return;
+            }
+            if (data.url) {
+                window.location.href = data.url;
+            }
+        } catch (e) {
+            console.error(e);
+            toast.error("Something went wrong");
+        } finally {
+            setLoadingPlan(null);
+        }
+    };
+
     return (
         <div id="pricing" className="px-4 md:px-16 lg:px-24 xl:px-32">
             <SectionTitle text1="Pricing" text2="Simple, Transparent Pricing" text3="Affordable plans for every creator. Start free and upgrade as you grow." />
@@ -31,8 +60,13 @@ export default function PricingSection() {
                                 </li>
                             ))}
                         </ul>
-                        <button type="button" className={`w-full py-2.5 rounded-md font-medium mt-7 transition-all ${plan.mostPopular ? 'bg-white text-pink-600 hover:bg-slate-200' : 'bg-pink-500 hover:bg-pink-600'}`}>
-                            Get Started
+                        <button 
+                            onClick={() => handleCheckout(plan.name)} 
+                            disabled={loadingPlan === plan.name}
+                            type="button" 
+                            className={`w-full py-2.5 rounded-md font-medium mt-7 transition-all ${plan.mostPopular ? 'bg-white text-pink-600 hover:bg-slate-200' : 'bg-pink-500 hover:bg-pink-600'}`}
+                        >
+                            {loadingPlan === plan.name ? "Loading..." : "Get Started"}
                         </button>
                     </motion.div>
                 ))}

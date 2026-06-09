@@ -6,6 +6,7 @@ import AspectRatioSelection from "../components/AspectRatioSelection";
 import StyleSelector from "../components/StyleSelector";
 import ColorSchemeSelector from "../components/ColorSchemeSelector";
 import PreviewPanel from "../components/PreviewPanel";
+import toast from "react-hot-toast";
 
 const Generate = () => {
   const { id } = useParams();
@@ -22,12 +23,33 @@ const Generate = () => {
   const [styleDropdownOpen, setStyleDropdownOpen] = useState(false);
 
   const handleGenerate = async () => {
-    console.log("Generate thumbnail");
-    setLoading(true);
-    // Simulate generation delay
-    setTimeout(() => {
+    try {
+      setLoading(true);
+      const res = await fetch("http://localhost:3000/api/thumbnail/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include", 
+        body: JSON.stringify({
+          title,
+          prompt: additionalDetails,
+          style,
+          aspect_ratio: aspectRatios,
+          color_scheme: colorSchemeId,
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.message || "Failed to generate thumbnail");
+        return;
+      }
+      setThumbnail(data.thumbnail);
+      toast.success("Thumbnail generated successfully!");
+    } catch (e) {
+      console.error(e);
+      toast.error("Something went wrong");
+    } finally {
       setLoading(false);
-    }, 2000);
+    }
   };
 
   const fetchThumbnail = async () => {

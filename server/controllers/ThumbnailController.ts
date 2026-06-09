@@ -1,9 +1,10 @@
 import { Request, Response } from "express";
 import Thumbnail from "../models/Thumbnail.js";
+import User from "../models/User.js";
 import fs from "fs";
 import path from "path";
 import { v2 as cloudinary } from "cloudinary";
-import openai from "../configs/openai.js";
+import "dotenv/config";
 
 // Configure Cloudinary
 cloudinary.config({
@@ -54,9 +55,22 @@ const colorSchemeDescriptions: Record<string, string> = {
 // =====================
 // GENERATE THUMBNAIL
 // =====================
-export const generateThumbnail = async (req: Request, res: Response) => {
+export const generateThumbnail = async (req: Request, res: Response): Promise<void> => {
   try {
     const { userId } = req.session;
+    
+    if (!userId) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+
+    // Check credits
+    const user = await User.findById(userId);
+    if (!user || user.credits <= 0) {
+      res.status(403).json({ message: "Insufficient credits. Please upgrade your plan." });
+      return;
+    }
+
     const {
       title,
       prompt: user_prompt,
@@ -92,24 +106,31 @@ export const generateThumbnail = async (req: Request, res: Response) => {
       prompt += `Include the text "${text_overlay}" clearly visible in the thumbnail. `;
     }
 
-    prompt += `The thumbnail should be ${aspect_ratio || "16:9"}, visually stunning, bold, professional, and impossible to ignore.`;
+    prompt += `The thumbnail should be visually stunning, bold, professional, and impossible to ignore.`;
 
-    // OpenAI DALL-E 3 Call
-    const response = await openai.images.generate({
-      model: "dall-e-3",
-      prompt: prompt,
-      n: 1,
-      size: "1024x1024",
-      response_format: "b64_json",
+    // We will use Hugging Face Inference API for free and reliable image generation
+    const hfToken = process.env.HUGGING_FACE_API_KEY || "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";
+    const hfUrl = "https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell";
+
+    const imgResponse = await fetch(hfUrl, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${hfToken}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ inputs: prompt })
     });
 
-    if (!response.data?.[0]?.b64_json) {
-      throw new Error("Failed to generate image from OpenAI");
+    if (!imgResponse.ok) {
+        const errText = await imgResponse.text();
+        console.error("Hugging Face API Error Response:", errText);
+        throw new Error("Failed to generate image from Hugging Face AI. Status: " + imgResponse.status);
     }
+    
+    const arrayBuffer = await imgResponse.arrayBuffer();
+    const finalBuffer = Buffer.from(arrayBuffer);
 
-    const finalBuffer = Buffer.from(response.data[0].b64_json, "base64");
-
-    const filename = `final-output-${Date.now()}.png`;
+    const filename = `final-output-${Date.now()}.jpg`;
     const filepath = path.join("images", filename);
 
     fs.mkdirSync("images", { recursive: true });
@@ -121,21 +142,46 @@ export const generateThumbnail = async (req: Request, res: Response) => {
 
     thumbnail.image_url = uploadResult.secure_url;
     thumbnail.isGenerating = false;
-
     await thumbnail.save();
+
     fs.unlinkSync(filepath);
 
-    res.json({ message: "Thumbnail Generated", thumbnail });
+    // Deduct credit
+    user.credits -= 1;
+    await user.save();
+
+    res.json({ message: "Thumbnail Generated", thumbnail, credits: user.credits });
   } catch (error: any) {
-    console.error("OpenAI Generation Error:", error);
-    res.status(500).json({ message: error.message });
+    console.error("Pollinations Generation Error:", error);
+    res.status(500).json({ message: error.message || "Something went wrong" });
+  }
+};
+
+// =====================
+// GET MY THUMBNAILS
+// =====================
+export const getMyThumbnails = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { userId } = req.session;
+    
+    if (!userId) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+
+    const thumbnails = await Thumbnail.find({ userId }).sort({ createdAt: -1 });
+
+    res.json({ thumbnails });
+  } catch (error: any) {
+    console.error("Fetch Thumbnails Error:", error);
+    res.status(500).json({ message: error.message || "Something went wrong" });
   }
 };
 
 // =====================
 // DELETE THUMBNAIL
 // =====================
-export const deleteThumbnail = async (req: Request, res: Response) => {
+export const deleteThumbnail = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const { userId } = req.session;

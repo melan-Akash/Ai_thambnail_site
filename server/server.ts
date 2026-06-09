@@ -8,6 +8,8 @@ import connectDB from "./configs/db.js";
 import AuthRouter from "./routes/AuthRoutes.js";
 import ThumbnailRouter from "./routes/ThumbnailRoutes.js";
 import UserRouter from "./routes/userRoutes.js";
+import StripeRouter from "./routes/StripeRoutes.js";
+import { stripeWebhook } from "./controllers/StripeController.js";
 
 // Session typing
 declare module "express-session" {
@@ -27,6 +29,9 @@ app.use(
     credentials: true,
   })
 );
+
+// We need raw body for Stripe webhook, so define this BEFORE express.json()
+app.post("/api/stripe/webhook", express.raw({ type: "application/json" }), stripeWebhook);
 
 app.use(express.json());
 
@@ -55,6 +60,7 @@ app.get("/", (req: Request, res: Response) => {
 app.use("/api/auth", AuthRouter);
 app.use("/api/thumbnail", ThumbnailRouter);
 app.use("/api/user", UserRouter);
+app.use("/api/stripe", StripeRouter);
 
 const port = process.env.PORT || 3000;
 

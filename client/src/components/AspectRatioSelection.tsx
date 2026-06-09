@@ -2,7 +2,7 @@ import { RectangleHorizontal, RectangleVertical, Square } from "lucide-react"
 import { aspectRatios, type AspectRatio } from "../assets/assets"
 import { button } from "motion/react-client";
 
-const AspectRatioSelection = ({ value, onChange }: { value: AspectRatio; onchange: (ratio: AspectRatio) => void }) => {
+const AspectRatioSelection = ({ value, onChange }: { value: AspectRatio; onChange: (ratio: AspectRatio) => void }) => {
 
   const iconMap = {
     '16:9': <RectangleHorizontal className="size-6" />,
@@ -24,7 +24,7 @@ const AspectRatioSelection = ({ value, onChange }: { value: AspectRatio; onchang
             <button
               key={ratio}
               type="button"
-              onClick={() => onchange(ratio)}
+              onClick={() => onChange(ratio)}
               className={`flex items-center gap-2 rounded-lg border px-5 py-2.5 text-sm transition-all
                 ${selected
                   ? 'border-white/20 bg-white/10 text-white'

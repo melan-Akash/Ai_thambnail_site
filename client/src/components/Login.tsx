@@ -1,4 +1,5 @@
 import React, { useState, ChangeEvent, FormEvent } from "react";
+import toast from "react-hot-toast";
 import SoftBackdrop from "./SoftBackdrop";
 
 const Login: React.FC = () => {
@@ -15,13 +16,38 @@ const Login: React.FC = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (state === "login") {
-      console.log("Login data:", formData);
-    } else {
-      console.log("Register data:", formData);
+    try {
+      const endpoint = state === "login" ? "/api/auth/login" : "/api/auth/register";
+      const body = state === "login" 
+        ? { email: formData.email, password: formData.password }
+        : { name: formData.name, email: formData.email, password: formData.password };
+
+      const res = await fetch(`http://localhost:3000${endpoint}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(body),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.message || "Failed to authenticate");
+        return;
+      }
+
+      toast.success(state === "login" ? "Logged in successfully!" : "Registered successfully!");
+      localStorage.setItem("isLoggedIn", "true");
+      
+      // Navigate after a short delay
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 1000);
+    } catch (e) {
+      console.error(e);
+      toast.error("Something went wrong");
     }
   };
 

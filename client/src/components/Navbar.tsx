@@ -6,7 +6,8 @@ import { Link, useNavigate } from "react-router-dom";
 
 export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
-    const navigate = useNavigate()
+    const navigate = useNavigate();
+    const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
 
     return (
         <>
@@ -26,14 +27,14 @@ export default function Navbar() {
                 <div className="hidden md:flex items-center gap-8 transition duration-500">
 
                     <Link to='/' className="hover:text-pink-300 transition">Home</Link>
-                    <Link to='/genarete' className="hover:text-pink-300 transition">Generate</Link>
+                    <Link to='/generate' className="hover:text-pink-300 transition">Generate</Link>
                     <Link to='/my-generation' className="hover:text-pink-300 transition">My Generations</Link>
                     <Link to='#' className="hover:text-pink-300 transition">My Contact</Link>
                     
                     
                 </div>
 
-                <button onClick={()=> navigate('/login')} className="hidden md:block px-6 py-2.5 bg-pink-600 hover:bg-pink-700 active:scale-95 transition-all rounded-full">
+                <button onClick={()=> navigate(isLoggedIn ? '/generate' : '/login')} className="hidden md:block px-6 py-2.5 bg-pink-600 hover:bg-pink-700 active:scale-95 transition-all rounded-full">
                     Get Started
                 </button>
                 <button onClick={() => setIsOpen(true)} className="md:hidden">
@@ -44,7 +45,7 @@ export default function Navbar() {
             <div className={`fixed inset-0 z-100 bg-black/40 backdrop-blur flex flex-col items-center justify-center text-lg gap-8 md:hidden transition-transform duration-400 ${isOpen ? "translate-x-0" : "-translate-x-full"}`}>
                 
                     <Link onClick={() => setIsOpen(false)} to='/' className="hover:text-pink-300 transition">Home</Link>
-                    <Link onClick={() => setIsOpen(false)} to='/genarete' className="hover:text-pink-300 transition">Generate</Link>
+                    <Link onClick={() => setIsOpen(false)} to='/generate' className="hover:text-pink-300 transition">Generate</Link>
                     <Link onClick={() => setIsOpen(false)} to='/my-generation' className="hover:text-pink-300 transition">My Generations</Link>
                     <Link onClick={() => setIsOpen(false)} to='#' className="hover:text-pink-300 transition">My Contact</Link>
                     <Link onClick={() => setIsOpen(false)} to='/login' className="hover:text-pink-300 transition">Login</Link>

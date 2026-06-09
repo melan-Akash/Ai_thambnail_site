@@ -117,7 +117,7 @@ const StyleSelector = ({
       </button>
 
       {isOpen && (
-        <div className="absolute mt-1 w-full rounded-md border border-white/12 bg-black/20 backdrop-blur-3xl shadow-lg">
+        <div className="absolute z-50 mt-1 w-full rounded-md border border-white/12 bg-black/20 backdrop-blur-3xl shadow-lg">
           {thumbnailStyles.map((style) => (
             <button
               key={style}
