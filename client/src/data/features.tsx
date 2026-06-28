@@ -3,20 +3,20 @@ import type { IFeature } from "../types";
 export const featuresData: IFeature[] = [
   {
     icon: "/assets/zap-icon.svg",
-    title: "Lightning-fast setup",
+    title: "Instant AI Generation",
     description:
-      "Launch production-ready pages in minutes with prebuilt components.",
+      "Generate stunning, customized thumbnails in seconds using state-of-the-art AI models.",
   },
   {
     icon: "/assets/thumb-icon.svg",
     title: "Eye-Catching Designs",
     description:
-      "Create stunning AI-powered thumbnails that attract clicks instantly.",
+      "Boost your YouTube views with vibrant colors, optimized text, and high-impact layouts.",
   },
   {
     icon: "/assets/shape-icon.svg",
-    title: "Fully Editable",
+    title: "CTR Optimization",
     description:
-      "Customize text, colors, and layouts effortlessly with smart controls.",
+      "Designed specifically to capture attention and maximize your video's Click-Through Rate.",
   },
 ];

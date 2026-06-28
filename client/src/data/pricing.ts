@@ -3,42 +3,42 @@ import type { IPricing } from "../types";
 export const pricingData: IPricing[] = [
     {
         name: "Basic",
-        price: 29,
+        price: 0,
         period: "month",
         features: [
-            "50 AI thumbnails per month",
-            "Basic Templates",
-            "Standard Resolution",
-            "No watermark",
-            "job assistance"
+            "5 Free AI thumbnails (one-time)",
+            "Standard 1080p resolution",
+            "All basic styles & color schemes",
+            "No watermarks",
+            "Commercial usage rights"
         ],
-        mostPopular: true
+        mostPopular: false
     },
     {
         name: "Pro",
-        price: 79,
+        price: 3,
         period: "month",
         features: [
-            "Access to all Pro courses",
-            "Priority community support",
-            "30 practice projects",
-            "Course completion certificate",
-            "Advance code review",
-            "1-on-1 mentoring sessions",
-            "Job assistance"
+            "100 AI thumbnails",
+            "Ultra-HD 4K resolution",
+            "Access to premium AI styles",
+            "Priority generation queue",
+            "Advanced text & face enhancement",
+            "24/7 Priority support"
         ],
         mostPopular: true
     },
     {
         name: "Enterprise",
-        price: 199,
+        price: 5,
         period: "month",
         features: [
-            "Access to all courses",
-            "Dedicated support",
-            "Unlimited projects",
-            "Course completion certificate",
-            "Premium code review"
+            "500 AI thumbnails",
+            "Everything in Pro",
+            "Multiple team accounts",
+            "Custom style fine-tuning",
+            "API access for automation",
+            "Dedicated account manager"
         ],
         mostPopular: false
     }

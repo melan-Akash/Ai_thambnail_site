@@ -5,6 +5,7 @@ import { dummyThumbnails } from "../assets/assets";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowRightIcon, DownloadIcon, TrashIcon } from "lucide-react";
 import toast from "react-hot-toast";
+import { API_URL } from "../config";
 
 const MyGeneration = () => {
   const navigate = useNavigate();
@@ -21,7 +22,7 @@ const MyGeneration = () => {
   const fetchThumbnails = async () => {
     try {
       setLoading(true);
-      const res = await fetch("http://localhost:3000/api/thumbnail/my-thumbnails", {
+      const res = await fetch(`${API_URL}/api/thumbnail/my-thumbnails`, {
         credentials: "include"
       });
       const data = await res.json();
@@ -59,7 +60,7 @@ const MyGeneration = () => {
   const handleDelete = async (id: string) => {
     try {
       const toastId = toast.loading("Deleting...");
-      const res = await fetch(`http://localhost:3000/api/thumbnail/${id}`, {
+      const res = await fetch(`${API_URL}/api/thumbnail/${id}`, {
         method: "DELETE",
         credentials: "include"
       });

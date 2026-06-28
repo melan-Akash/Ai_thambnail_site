@@ -7,6 +7,7 @@ import StyleSelector from "../components/StyleSelector";
 import ColorSchemeSelector from "../components/ColorSchemeSelector";
 import PreviewPanel from "../components/PreviewPanel";
 import toast from "react-hot-toast";
+import { API_URL } from "../config";
 
 const Generate = () => {
   const { id } = useParams();
@@ -25,7 +26,7 @@ const Generate = () => {
   const handleGenerate = async () => {
     try {
       setLoading(true);
-      const res = await fetch("http://localhost:3000/api/thumbnail/generate", {
+      const res = await fetch(`${API_URL}/api/thumbnail/generate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include", 

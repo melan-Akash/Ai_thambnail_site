@@ -5,6 +5,7 @@ export interface IUser extends Document {
   email: string;
   password: string;
   credits: number;
+  freePlanClaimed?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -33,6 +34,11 @@ const UserSchema = new Schema<IUser>(
     credits: {
       type: Number,
       default: 3,
+    },
+
+    freePlanClaimed: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true }

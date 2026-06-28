@@ -1,6 +1,7 @@
 import React, { useState, ChangeEvent, FormEvent } from "react";
 import toast from "react-hot-toast";
 import SoftBackdrop from "./SoftBackdrop";
+import { API_URL } from "../config";
 
 const Login: React.FC = () => {
   const [state, setState] = useState<"login" | "register">("login");
@@ -25,7 +26,7 @@ const Login: React.FC = () => {
         ? { email: formData.email, password: formData.password }
         : { name: formData.name, email: formData.email, password: formData.password };
 
-      const res = await fetch(`http://localhost:3000${endpoint}`, {
+      const res = await fetch(`${API_URL}${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

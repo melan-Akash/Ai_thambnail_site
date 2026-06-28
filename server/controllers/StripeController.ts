@@ -1,23 +1,24 @@
 import { Request, Response } from "express";
 import stripe from "../configs/stripe.js";
 import User from "../models/User.js";
+import { sendPaymentEmail } from "../services/emailService.js";
 
 // Pricing Plans mapping
 const plans = {
-  "starter": {
-    price: 9,
-    credits: 100,
-    name: "Starter"
+  "basic": {
+    price: 0,
+    credits: 5,
+    name: "Basic"
   },
   "pro": {
-    price: 29,
-    credits: 500,
+    price: 3,
+    credits: 100,
     name: "Pro"
   },
-  "agency": {
-    price: 99,
-    credits: 2000,
-    name: "Agency"
+  "enterprise": {
+    price: 5,
+    credits: 500,
+    name: "Enterprise"
   }
 };
 
@@ -37,6 +38,26 @@ export const createCheckoutSession = async (req: Request, res: Response): Promis
       return;
     }
 
+    // Handle Free Plan directly without Stripe
+    if (plan.price === 0) {
+      const user = await User.findById(userId);
+      if (!user) {
+        res.status(404).json({ message: "User not found" });
+        return;
+      }
+      if (user.freePlanClaimed) {
+        res.status(400).json({ message: "You have already claimed the free plan credits." });
+        return;
+      }
+      user.credits += plan.credits;
+      user.freePlanClaimed = true;
+      await user.save();
+      res.json({ message: "Free plan activated! 5 credits added.", isFree: true, credits: user.credits });
+      return;
+    }
+
+    const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       mode: "payment",
@@ -52,8 +73,8 @@ export const createCheckoutSession = async (req: Request, res: Response): Promis
           quantity: 1,
         },
       ],
-      success_url: `http://localhost:5173/?payment=success`,
-      cancel_url: `http://localhost:5173/?payment=cancelled`,
+      success_url: `${clientUrl}/?payment=success`,
+      cancel_url: `${clientUrl}/?payment=cancelled`,
       metadata: {
         userId: userId.toString(),
         credits: plan.credits.toString()
@@ -99,10 +120,15 @@ export const stripeWebhook = async (req: Request, res: Response): Promise<void> 
     if (userId && creditsStr) {
       const credits = parseInt(creditsStr, 10);
       try {
-        await User.findByIdAndUpdate(userId, {
-          $inc: { credits: credits }
-        });
+        const user = await User.findByIdAndUpdate(
+          userId,
+          { $inc: { credits: credits } },
+          { new: true }
+        );
         console.log(`Successfully added ${credits} credits to user ${userId}`);
+        if (user) {
+          sendPaymentEmail(user.email, user.name, credits === 100 ? "Pro" : "Enterprise", credits);
+        }
       } catch (dbError) {
         console.error("Database Error updating user credits:", dbError);
       }

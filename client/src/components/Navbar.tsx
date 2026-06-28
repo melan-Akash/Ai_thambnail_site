@@ -3,6 +3,7 @@ import { useState } from "react";
 import { motion } from "motion/react";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import { API_URL } from "../config";
 
 export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
@@ -18,7 +19,7 @@ export default function Navbar() {
 
     const handleLogout = async () => {
         try {
-            await fetch("http://localhost:3000/api/auth/logout", {
+            await fetch(`${API_URL}/api/auth/logout`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 credentials: "include"
@@ -50,7 +51,7 @@ export default function Navbar() {
                     <Link to='/' className="hover:text-pink-300 transition">Home</Link>
                     <Link to='/generate' className="hover:text-pink-300 transition">Generate</Link>
                     <Link to='/my-generation' className="hover:text-pink-300 transition">My Generations</Link>
-                    <Link to='#' className="hover:text-pink-300 transition">My Contact</Link>
+                    <Link to='/#contact' className="hover:text-pink-300 transition">Contact Us</Link>
                 </div>
 
                 <div className="hidden md:flex items-center">

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 import User from '../models/User.js'
 import bcrypt from 'bcrypt'
+import { sendWelcomeEmail } from '../services/emailService.js'
 
 // =====================
 // USER REGISTER
@@ -27,6 +28,9 @@ export const registerUser = async (req: Request, res: Response) => {
     })
 
     await newUser.save()
+
+    // Send welcome email asynchronously
+    sendWelcomeEmail(newUser.email, newUser.name);
 
     // setting user data in session
     req.session.isLoggedIn = true

@@ -6,24 +6,42 @@ import { CheckIcon } from "lucide-react";
 import { motion } from "motion/react";
 import { useState } from "react";
 import toast from "react-hot-toast";
+import { API_URL } from "../config";
+import { useNavigate } from "react-router-dom";
 
 export default function PricingSection() {
     const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+    const navigate = useNavigate();
 
     const handleCheckout = async (planId: string) => {
         try {
             setLoadingPlan(planId);
-            const res = await fetch("http://localhost:3000/api/stripe/create-checkout-session", {
+            const res = await fetch(`${API_URL}/api/stripe/create-checkout-session`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 credentials: "include",
                 body: JSON.stringify({ planId: planId.toLowerCase() }),
             });
             const data = await res.json();
+            
+            if (res.status === 401) {
+                toast.error("Please login to choose a plan");
+                setTimeout(() => {
+                    navigate("/login");
+                }, 1500);
+                return;
+            }
+
             if (!res.ok) {
                 toast.error(data.message || "Checkout failed");
                 return;
             }
+
+            if (data.isFree) {
+                toast.success(data.message || "Free plan activated successfully!");
+                return;
+            }
+
             if (data.url) {
                 window.location.href = data.url;
             }

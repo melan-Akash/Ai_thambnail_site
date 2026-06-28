@@ -1,5 +1,5 @@
 import { Route, Routes, useLocation } from "react-router-dom";
-import { Toaster } from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast";
 import HomePage from "./pages/HomePage";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -13,12 +13,41 @@ import { useEffect } from "react";
 
 export default function App() {
 
-    const {pathname} = useLocation()
+    const location = useLocation();
 
-    useEffect(()=>{
-        window.scrollTo(0,0)
+    useEffect(() => {
+        if (location.hash) {
+            const id = location.hash.replace('#', '');
+            const element = document.getElementById(id);
+            if (element) {
+                setTimeout(() => {
+                    element.scrollIntoView({ behavior: 'smooth' });
+                }, 100);
+                return;
+            }
+        }
+        window.scrollTo(0, 0);
+    }, [location.pathname, location.hash]);
 
-    },[pathname])
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const paymentStatus = params.get('payment');
+        if (paymentStatus === 'success') {
+            toast.success('Payment successful! Your credits have been updated.');
+            const newSearch = new URLSearchParams(location.search);
+            newSearch.delete('payment');
+            const newSearchString = newSearch.toString();
+            const newPath = location.pathname + (newSearchString ? `?${newSearchString}` : '');
+            window.history.replaceState({}, document.title, newPath);
+        } else if (paymentStatus === 'cancelled') {
+            toast.error('Payment cancelled.');
+            const newSearch = new URLSearchParams(location.search);
+            newSearch.delete('payment');
+            const newSearchString = newSearch.toString();
+            const newPath = location.pathname + (newSearchString ? `?${newSearchString}` : '');
+            window.history.replaceState({}, document.title, newPath);
+        }
+    }, [location.search, location.pathname]);
 
     return (
         <>

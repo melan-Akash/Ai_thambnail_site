@@ -22,7 +22,7 @@ export default function CTASection() {
           viewport={{ once: true }}
           transition={{ type: "spring", stiffness: 280, damping: 70 }}
         >
-          Ready to try out this app?
+          Ready to skyrocket your CTR?
         </motion.h1>
 
         <motion.p
@@ -32,13 +32,13 @@ export default function CTASection() {
           viewport={{ once: true }}
           transition={{ type: "spring", stiffness: 200, damping: 70 }}
         >
-          Your next favourite tool is just one click away.
+          Start creating high-converting thumbnails with Thumblify today.
         </motion.p>
       </div>
 
       <motion.button
         onClick={() => navigate(isLoggedIn ? '/generate' : '/login')}
-        className="px-12 py-3 mt-4 text-sm font-medium text-slate-800 bg-white rounded-full hover:bg-slate-200 transition"
+        className="px-12 py-3 mt-4 text-sm font-medium text-slate-800 bg-white rounded-full hover:bg-slate-200 transition cursor-pointer"
         initial={{ y: 80, opacity: 0 }}
         whileInView={{ y: 0, opacity: 1 }}
         viewport={{ once: true }}
