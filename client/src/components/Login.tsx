@@ -40,6 +40,9 @@ const Login: React.FC = () => {
 
       toast.success(state === "login" ? "Logged in successfully!" : "Registered successfully!");
       localStorage.setItem("isLoggedIn", "true");
+      if (data.user) {
+        localStorage.setItem("user", JSON.stringify(data.user));
+      }
       
       // Navigate after a short delay
       setTimeout(() => {

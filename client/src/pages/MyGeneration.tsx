@@ -77,8 +77,14 @@ const MyGeneration = () => {
   };
 
   useEffect(() => {
+    const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+    if (!isLoggedIn) {
+      toast.error("Please log in to view your generations");
+      navigate("/login");
+      return;
+    }
     fetchThumbnails();
-  }, []);
+  }, [navigate]);
 
   return (
     <>

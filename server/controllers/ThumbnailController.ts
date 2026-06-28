@@ -108,23 +108,37 @@ export const generateThumbnail = async (req: Request, res: Response): Promise<vo
 
     prompt += `The thumbnail should be visually stunning, bold, professional, and impossible to ignore.`;
 
-    // We will use Hugging Face Inference API for free and reliable image generation
-    const hfToken = process.env.HUGGING_FACE_API_KEY || "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";
-    const hfUrl = "https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell";
+    // We will use Hugging Face or Pollinations AI for free and reliable image generation
+    let imgResponse;
+    const hfToken = process.env.HUGGING_FACE_API_KEY;
 
-    const imgResponse = await fetch(hfUrl, {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${hfToken}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ inputs: prompt })
-    });
+    if (hfToken && hfToken !== "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") {
+      try {
+        const hfUrl = "https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell";
+        imgResponse = await fetch(hfUrl, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${hfToken}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ inputs: prompt })
+        });
+      } catch (e) {
+        console.error("Hugging Face Generation failed, falling back to Pollinations:", e);
+      }
+    }
+
+    if (!imgResponse || !imgResponse.ok) {
+      // Fallback to Pollinations AI (completely free, no token required)
+      const model = "flux";
+      const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1024&height=576&nologo=true&model=${model}`;
+      imgResponse = await fetch(pollinationsUrl);
+    }
 
     if (!imgResponse.ok) {
         const errText = await imgResponse.text();
-        console.error("Hugging Face API Error Response:", errText);
-        throw new Error("Failed to generate image from Hugging Face AI. Status: " + imgResponse.status);
+        console.error("AI Generation Error Response:", errText);
+        throw new Error("Failed to generate image from AI. Status: " + imgResponse.status);
     }
     
     const arrayBuffer = await imgResponse.arrayBuffer();
